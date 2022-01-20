@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+  xenforo_server:
+    build:
+      context: .docker
+      dockerfile: php.dockerfile
+    container_name: xenforo
+    healthcheck:
+      test: [ "CMD", "php-fpm-healthcheck" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    working_dir: /var/www/html
+    networks:
+      - xenforo
+    volumes:
+      - ./xenforo:/var/www/html
+      - "./src/${GROUP}:/var/www/html/src/addons/${GROUP}"
+    environment:
+      DB_PORT: 3306
+      DB_HOST: xenforo-db
+      DB_USER: xenforo
+      DB_PASSWORD: password
+      DB_NAME: xenforo
+      PHP_IDE_CONFIG: 'serverName=localhost'
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: xenforo-nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    networks:
+      - xenforo
+    ports:
+      - 80:80
+    volumes:
+      - ./xenforo:/var/www/html
+      - ./src:/var/www/html/src/addons
+      - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+  database:
+    container_name: xenforo-db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "$MYSQL_USER", "--password=$MYSQL_PASSWORD"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    networks:
+      - xenforo
+    ports:
+      - 3306:3306
+    image: mariadb:10.3
+    volumes:
+      - ./xenforo_db:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: xenforo
+      MYSQL_USER: xenforo
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: secret
+networks:
+  xenforo:
+    name: xenforo

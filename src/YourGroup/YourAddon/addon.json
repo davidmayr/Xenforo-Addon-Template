@@ -1,0 +1,14 @@
+{
+  "legacy_addon_id": "",
+  "title": "Your addon",
+  "description": "",
+  "version_id": 1,
+  "version_string": "1.0.0",
+  "dev": "Your name",
+  "dev_url": "",
+  "faq_url": "",
+  "support_url": "",
+  "extra_urls": [],
+  "require": [],
+  "icon": ""
+}
